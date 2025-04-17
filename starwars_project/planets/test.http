@@ -1,0 +1,19 @@
+
+GET http://localhost:8000/api/Fetchplanets
+Content-Type: application/json
+
+GET http://localhost:8000/api/AllPlanets
+Content-Type: application/json
+
+GET http://localhost:8000/api/planetview/Jupiter
+Content-Type: application/json
+
+POST http://localhost:8000/api/planets/create/
+Content-Type: application/json
+
+{
+  "name": "Jupiter",
+  "population": 0,
+  "terrains": "gas giant",
+  "climates": "cold"
+}
