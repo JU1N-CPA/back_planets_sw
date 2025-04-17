@@ -10,6 +10,7 @@ Considerations and thoughts:
 3. Implement docker and docker compuse to orchestrate the database easily and the application and easy scalability and dependency
 4. Queue messaging as initial steps to implement microservices
 5. CI/CD for easy deployment
+6. loggers and error handler properly
 
 Note: These are thoughts to improve and create a robust applications. However, it is essential to analyse the business perspective before implement any of those tools.
 ---
