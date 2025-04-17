@@ -138,3 +138,30 @@ class AllPlanetsView(APIView):
         planets = Planet.objects.all()
         serializer = PlanetSerializer(planets, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UpdatePlanetByNameView(APIView):
+    '''
+    PUT: Update a planet record by its name
+
+    parameters:
+    - name: Name of the planet to update
+    - request.data: Fields to update (e.g., population, terrains, climates)
+
+    Raises:
+    - 404 if the planet does not exist
+    - 400 if the data is invalid
+    '''
+    def put(self, request, name=None):
+        if name is None:
+            return Response({"error": "Planet name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            planet = Planet.objects.get(name=name)
+        except Planet.DoesNotExist:
+            return Response({"error": "Planet not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = PlanetSerializer(planet, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
