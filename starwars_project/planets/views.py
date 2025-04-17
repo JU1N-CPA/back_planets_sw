@@ -1,7 +1,5 @@
 from django.shortcuts import render
 
-# Create your views here.
-
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,15 +13,11 @@ from rest_framework.exceptions import NotFound
 
 class FetchAndSavePlanetsView(APIView):
     def get(self, request):
-        '''
-        GET: return all planets and insert the records into the database
+        """
+        GET: Fetch all planets from the SWAPI GraphQL endpoint and save new ones to the database.
 
-        parameters:
-        None
-
-        Raises:
-        Not implemented
-        '''
+        Skips inserting a planet if one with the same name already exists.
+        """
         query = """
         query {
             allPlanets {
@@ -36,49 +30,51 @@ class FetchAndSavePlanetsView(APIView):
             }
         }
         """
-        #url = "https://swapi-graphql.netlify.app/.netlify/functions/index"
+
         url = (
             "https://swapi-graphql.netlify.app/.netlify/functions/index?"
             "query=query%20Query%20{allPlanets{planets{name%20population%20terrains%20climates}}}"
         )
+
         response = requests.post(url, json={'query': query})
 
-        if response.status_code == 200:
-            planets_data = response.json().get('data', {}).get('allPlanets', {}).get('planets', [])
-            saved_planets = []
-
-            for planet_data in planets_data:
-                # Handle null population by setting it to 0 (or another default value)
-                if planet_data.get('population') is None:
-                    planet_data['population'] = 0  # Or handle as needed
-
-                # Ensure terrains and climates are correctly concatenated if they are lists
-                terrains = planet_data.get('terrains')
-                climates = planet_data.get('climates')
-
-                # Concatenate list elements with hyphens
-                if isinstance(terrains, list):
-                    planet_data['terrains'] = '-'.join(terrains)
-                else:
-                    planet_data['terrains'] = ''  # Handle cases where terrains might not be a list
-                
-                if isinstance(climates, list):
-                    planet_data['climates'] = '-'.join(climates)
-                else:
-                    planet_data['climates'] = ''  # Handle cases where climates might not be a list
-
-                # Serialize and save the planet data
-                serializer = PlanetSerializer(data=planet_data)
-                if serializer.is_valid():
-                    planet = serializer.save()
-                    saved_planets.append(planet)
-                else:
-                    # Log or handle the error
-                    print(f"Error saving planet {planet_data['name']}: {serializer.errors}")
-
-            return Response({"saved_planets": PlanetSerializer(saved_planets, many=True).data}, status=status.HTTP_200_OK)
-        else:
+        if response.status_code != 200:
             return Response({"error": "Failed to fetch data from SWAPI"}, status=status.HTTP_400_BAD_REQUEST)
+
+        planets_data = response.json().get('data', {}).get('allPlanets', {}).get('planets', [])
+        saved_planets = []
+        skipped_planets = []
+
+        for planet_data in planets_data:
+            planet_name = planet_data.get('name')
+
+            # Skip if planet already exists
+            if Planet.objects.filter(name__iexact=planet_name).exists():
+                skipped_planets.append(planet_name)
+                continue
+
+            # Handle null population
+            planet_data['population'] = planet_data.get('population') or 0
+
+            # Convert list fields to strings
+            terrains = planet_data.get('terrains', [])
+            climates = planet_data.get('climates', [])
+
+            planet_data['terrains'] = '-'.join(terrains) if isinstance(terrains, list) else ''
+            planet_data['climates'] = '-'.join(climates) if isinstance(climates, list) else ''
+
+            serializer = PlanetSerializer(data=planet_data)
+            if serializer.is_valid():
+                planet = serializer.save()
+                saved_planets.append(planet)
+            else:
+                print(f"Error saving planet {planet_name}: {serializer.errors}")
+
+        return Response({
+            "saved_planets": PlanetSerializer(saved_planets, many=True).data,
+            "skipped_planets": skipped_planets
+        }, status=status.HTTP_200_OK)
+
 
 class RetrievePlanetByNameView(APIView):
     def get(self, request, name=None):
@@ -100,17 +96,24 @@ class RetrievePlanetByNameView(APIView):
                 return Response({"error": "Planet not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class CreatePlanetView(CreateAPIView):
-    '''
-    POST: Create a new planet
+    """
+    POST: Create a new planet.
 
-    parameters:
-    CreateAPIView class to create a basic record
-
-    Raises:
-    Not implemented
-    '''
+    If a planet with the same name exists (case-insensitive), the request is rejected.
+    """
     queryset = Planet.objects.all()
     serializer_class = PlanetSerializer
+
+    def create(self, request, *args, **kwargs):
+        planet_name = request.data.get('name', '').strip()
+
+        if Planet.objects.filter(name__iexact=planet_name).exists():
+            return Response(
+                {"error": f"A planet named '{planet_name}' already exists."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return super().create(request, *args, **kwargs)
 
 class DeletePlanetView(generics.DestroyAPIView):
     '''
