@@ -4,6 +4,14 @@
 
 This document provides a step-by-step guide to set up, run, and test the Back Planets SW API.
 
+Considerations and thoughts:
+1. Implement unit tests to check specific cases
+2. Implement private views for security (optional giving the nature of the case)
+3. Implement docker and docker compuse to orchestrate the database easily and the application and easy scalability and dependency
+4. Queue messaging as initial steps to implement microservices
+5. CI/CD for easy deployment
+
+Note: These are thoughts to improve and create a robust applications. However, it is essential to analyse the business perspective before implement any of those tools.
 ---
 
 ## Table of Contents
@@ -87,12 +95,12 @@ This document provides a step-by-step guide to set up, run, and test the Back Pl
 ### Available Endpoints
 | Method | Endpoint                          | Description                          |
 |--------|-----------------------------------|--------------------------------------|
-| GET    | `/Fetchplanets/`                 | Fetch and save planets from an external API |
-| GET    | `/AllPlanets/`                   | Retrieve all planets                 |
-| GET    | `/planetview/<str:name>/`        | Retrieve a specific planet by name   |
-| POST   | `/planets/create/`               | Create a new planet                  |
-| DELETE | `/planets/delete/<str:name>/`    | Delete a specific planet by name     |
-| PUT    | `/planets/update/<str:name>/`    | Update a specific planet by name     |
+| GET    | `api/Fetchplanets/`                 | Fetch and save planets from an external API |
+| GET    | `api/AllPlanets/`                   | Retrieve all planets                 |
+| GET    | `api/planetview/<str:name>/`        | Retrieve a specific planet by name   |
+| POST   | `api/planets/create/`               | Create a new planet                  |
+| DELETE | `api/planets/delete/<str:name>/`    | Delete a specific planet by name     |
+| PUT    | `api/planets/update/<str:name>/`    | Update a specific planet by name     |
 
 ## Explaination
 /Fetchplanets/:
