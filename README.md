@@ -42,9 +42,9 @@ Note: These are thoughts to improve and create a robust applications. However, i
         python3 -m venv venv
         source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-3. **Install Dependencies**:
+3. **Install requirements.txt**:
     ```python
-        pip install django djangorestframework
+        pip install -r requirements.txt
 
 ## database-setup
 
