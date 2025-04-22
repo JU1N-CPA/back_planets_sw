@@ -9,9 +9,45 @@ from .models import Planet
 from rest_framework.generics import CreateAPIView
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated,AllowAny
+from django.contrib.auth.models import User
+from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import PlanetFilter
+from .utils.parse_objects import parse_comma_field,join_comma_field
+from django.shortcuts import get_object_or_404
 
+
+class RegisterUserView(APIView):
+    """
+    POST: Register a new user (username & password).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        if not username or not password:
+            return Response({"error": "Username and password are required."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already exists."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        User.objects.create_user(username=username, password=password)
+        return Response({"message": "User created successfully."},
+                        status=status.HTTP_201_CREATED)
+
+class PlanetListView(generics.ListAPIView):
+    queryset = Planet.objects.all()
+    serializer_class = PlanetSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PlanetFilter
 
 class FetchAndSavePlanetsView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         """
         GET: Fetch all planets from the SWAPI GraphQL endpoint and save new ones to the database.
@@ -78,6 +114,7 @@ class FetchAndSavePlanetsView(APIView):
 
 class RetrievePlanetByNameView(APIView):
     def get(self, request, name=None):
+        permission_classes = [IsAuthenticated]
         '''
         GET: return only the a record giving a name
 
@@ -96,6 +133,7 @@ class RetrievePlanetByNameView(APIView):
                 return Response({"error": "Planet not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class CreatePlanetView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
     """
     POST: Create a new planet.
 
@@ -116,6 +154,7 @@ class CreatePlanetView(CreateAPIView):
         return super().create(request, *args, **kwargs)
 
 class DeletePlanetView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
     '''
     POST: Delete one record giving the name
 
@@ -131,6 +170,7 @@ class DeletePlanetView(generics.DestroyAPIView):
 
         
 class AllPlanetsView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         '''
         GET: Retrieve all planets from the local database
@@ -143,6 +183,7 @@ class AllPlanetsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UpdatePlanetByNameView(APIView):
+    permission_classes = [IsAuthenticated]
     '''
     PUT: Update a planet record by its name
 
@@ -168,3 +209,47 @@ class UpdatePlanetByNameView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PartialUpdatePlanetView(APIView):
+    """
+    PATCH: Partially update a planet's data with specific field logic for terrains and climates.
+
+    - This view allows authenticated users to partially update the fields of a Planet identified by its 'name'.
+    - Specifically, it supports appending or removing individual elements from comma-separated string fields
+      like 'terrains' and 'climates' without overwriting the entire value.
+    
+    Request Body Options (JSON):
+    {
+        "add_terrains": ["new terrain"],
+        "remove_terrains": ["old terrain"],
+        "add_climates": ["humid"],
+        "remove_climates": ["arid"],
+        ... other updatable fields like "population" can also be passed
+    }
+    """
+    permission_classes = [IsAuthenticated]
+    def patch(self, request, name):
+        planet = get_object_or_404(Planet, name=name)
+
+        # Parse optional additions/removals
+        add_terrains = request.data.get("add_terrains", [])
+        remove_terrains = request.data.get("remove_terrains", [])
+        add_climates = request.data.get("add_climates", [])
+        remove_climates = request.data.get("remove_climates", [])
+
+        # Process terrains
+        current_terrains = parse_comma_field(planet.terrains or "")
+        updated_terrains = list(set(current_terrains + add_terrains) - set(remove_terrains))
+        planet.terrains = join_comma_field(updated_terrains)
+
+        # Process climates
+        current_climates = parse_comma_field(planet.climates or "")
+        updated_climates = list(set(current_climates + add_climates) - set(remove_climates))
+        planet.climates = join_comma_field(updated_climates)
+
+        # Let serializer handle remaining fields
+        serializer = PlanetSerializer(planet, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
