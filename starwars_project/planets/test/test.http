@@ -1,28 +1,83 @@
 
 GET http://localhost:8000/api/Fetchplanets
 Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
 
 GET http://localhost:8000/api/AllPlanets
 Content-Type: application/json
+Authorization: Token abc123yourtokenhere
 
 GET http://localhost:8000/api/planetview/Jupiter
 Content-Type: application/json
+Authorization: Token abc123yourtokenhere
+
+GET http://localhost:8000/api/planets/?name=Tatooine
+Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
+
+GET http://localhost:8000/api/planets/?population__gte=5000000
+Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
+
+GET http://localhost:8000/api/planets/?climates__icontains=arid
+Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
 
 POST http://localhost:8000/api/planets/create/
 Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
 
 {
   "name": "Jupiter",
   "population": 0,
-  "terrains": "gas giant",
+  "terrains": "gas",
   "climates": "cold"
 }
 
 PUT http://localhost:8000/api/planets/update/Jupiter/
 Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
 
 {
   "population": 450000,
-  "terrains": "desert",
+  "terrains": "desertt",
   "climates": "arid"
+}
+
+PATCH http://localhost:8000/api/planets/update-partial/Tatooine/
+Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
+
+{
+  "add_terrains": ["desert"],
+  "add_climates": ["arid"]
+}
+
+### Register new user
+POST http://localhost:8000/api/register/
+Content-Type: application/json
+
+{
+  "username": "luke",
+  "password": "force123"
+}
+
+### Get Auth Token
+POST http://localhost:8000/api/api-token-auth/
+Content-Type: application/json
+
+{
+  "username": "luke",
+  "password": "force123"
+}
+
+POST http://localhost:8000/api/planets/create/
+Content-Type: application/json
+Authorization: Token 5b4c01e1f29c3e4643bf5c1cbfd9f17cf96fa9e3
+
+{
+  "name": "",
+  "population": 0,
+  "terrains": "gas",
+  "climates": "cold"
 }

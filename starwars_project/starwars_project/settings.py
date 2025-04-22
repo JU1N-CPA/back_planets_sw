@@ -39,8 +39,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'planets',
-    'drf_yasg'
+    'drf_yasg',
+    'rest_framework.authtoken',
+    'django_filters'
 ]
+
+
+REST_FRAMEWORK = {
+        'DEFAULT_AUTHENTICATION_CLASSES': [
+            'rest_framework.authentication.TokenAuthentication',
+        ],
+        'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.IsAuthenticated',
+        ],
+        'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    }
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
