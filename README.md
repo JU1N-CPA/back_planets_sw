@@ -25,7 +25,7 @@ IMPORTANT: If you want to run the app using Docker, go to step 7
 4. [Testing the API](#testing-the-api)
 5. [SQLite Command Line](#sqlite-command-line)
 6. [API Endpoints](#api-endpoints)
-7. [Docker](#Docker)
+7. [Docker](#Docker Usage Guide)
 
 ---
 
@@ -112,91 +112,98 @@ IMPORTANT: If you want to run the app using Docker, go to step 7
 | GET    | `api/planets/`                      | Filter by specific attribute of the planet e.g ?climates__icontains=arid  |
 
 
-## Explaination
-/Fetchplanets/
-Method: GET
-Description: Fetches planets from an external API and saves them to the database.
+## Explanation
 
-/AllPlanets/
-Method: GET
-Description: Retrieves all planets stored in the database.
+- `/Fetchplanets/`
+  - **Method:** GET
+  - **Description:** Fetches planets from an external API and saves them to the database.
 
-/planetview/<str:name>/
-Method: GET
-Description: Retrieves details of a specific planet by its name.
+- `/AllPlanets/`
+  - **Method:** GET
+  - **Description:** Retrieves all planets stored in the database.
 
-/planets/create/
-Method: POST
-Description: Creates a new planet in the database. Requires a JSON payload with planet details.
+- `/planetview/<str:name>/`
+  - **Method:** GET
+  - **Description:** Retrieves details of a specific planet by its name.
 
-/planets/delete/<str:name>/
-Method: DELETE
-Description: Deletes a specific planet from the database by its name.
+- `/planets/create/`
+  - **Method:** POST
+  - **Description:** Creates a new planet in the database. Requires a JSON payload with planet details.
 
-/planets/update/<str:name>/
-Method: PUT
-Description: Updates the details of a specific planet by its name. Requires a JSON payload with updated planet details.
+- `/planets/delete/<str:name>/`
+  - **Method:** DELETE
+  - **Description:** Deletes a specific planet from the database by its name.
 
-/api/register/
-Method: POST
-Description: Registers a new user. Requires username and password to be stored for future token-based authentication.
+- `/planets/update/<str:name>/`
+  - **Method:** PUT
+  - **Description:** Updates the details of a specific planet by its name. Requires a JSON payload with updated planet details.
 
-/api-token-auth/
-Method: POST
-Description: Logs in a registered user and returns an authentication token for use in future requests.
+- `/api/register/`
+  - **Method:** POST
+  - **Description:** Registers a new user. Requires username and password to be stored for future token-based authentication.
 
-/planets/update-partial/
-Method: PATCH
-Description: Updates only the specified fields of a planet record. Useful for minor changes without affecting other data.
+- `/api-token-auth/`
+  - **Method:** POST
+  - **Description:** Logs in a registered user and returns an authentication token for use in future requests.
 
-/planets/
-Method: GET
-Description: Retrieves planets filtered by query parameters like name, population__gte, climates, etc.
-Example: /planets/?name=Tatooine&climates__icontains=arid
+- `/planets/update-partial/`
+  - **Method:** PATCH
+  - **Description:** Updates only the specified fields of a planet record. Useful for minor changes without affecting other data.
 
-
-## 7. Docker
-
-## 🧱 Project Structure
-starwars_project/ ├── starwars_project/ # Django project ├── planets/ # Django app ├── manage.py ├── requirements.txt ├── Dockerfile ├── .dockerignore └── docker-compose.yml
+- `/planets/`
+  - **Method:** GET
+  - **Description:** Retrieves planets filtered by query parameters like `name`, `population__gte`, `climates`, etc.
+    - **Example:** `/planets/?name=Tatooine&climates__icontains=arid`
 
 ---
 
-## ⚙️ Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/)
-
----
-
-## 🚀 Getting Started
+## Docker Usage Guide
 
 ### 1. Build & Run the App
 
-    ```bash
-        docker-compose up --build
+## 🧱 Project Structure
+starwars_project/ 
+├── starwars_project/ # Django project 
+├── planets/ # Django app 
+├── manage.py 
+├── requirements.txt 
+├── Dockerfile 
+├── .dockerignore 
+└── docker-compose.yml
 
-### 2.  Access the Running Container to query the database
-    ``` bash
-        docker ps  # Find the container name
-        docker exec -it starwars_project_web_1 sh  # Or /bin/bash
-        ls
+```bash
+docker-compose up --build
+```
 
-### 3.  Access the Running Container to query the database
-    ```bash
-        .tables
-        .schema
-        SELECT * FROM planets_planet;
-        .quit
+### 2. Access the Running Container
 
-### 4.  Stop and restart Docker
-    ```bash
-        docker-compose down
-        docker-compose up
-    
-### 5.  Full clean
-    ```bash
-        docker-compose down -v --rmi all
+```bash
+docker ps  # Find the container name
+docker exec -it starwars_project_web_1 sh  # Or use /bin/bash if needed
+ls
+```
 
+### 3. Query the SQLite Database from Inside the Container
+
+```bash
+sqlite3 db.sqlite3
+.tables
+.schema
+SELECT * FROM planets_planet;
+.quit
+```
+
+### 4. Stop and Restart Docker
+
+```bash
+docker-compose down
+docker-compose up
+```
+
+### 5. Full Clean (Remove Volumes and Images)
+
+```bash
+docker-compose down -v --rmi all
+```
 
  
