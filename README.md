@@ -25,7 +25,7 @@ IMPORTANT: If you want to run the app using Docker, go to step 7
 4. [Testing the API](#testing-the-api)
 5. [SQLite Command Line](#sqlite-command-line)
 6. [API Endpoints](#api-endpoints)
-7. [Docker](#Docker Usage Guide)
+7. [Docker](#Docker-Usage-Guide)
 
 ---
 
